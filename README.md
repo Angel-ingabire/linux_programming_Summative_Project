@@ -367,9 +367,3 @@ make -C "PROJECT 5" all
 | 5       | C (Berkeley Sockets) | `socket`, `bind`, `listen`, `accept`, `send`, `recv`, `select`                  |
 
 ---
-
-## Author & Academic Context
-
-This project was completed as part of a **Linux Programming** summative assessment. All programs have been compiled and tested in a Linux environment (or WSL2).
-
-For per-project details, see the individual `README.md` files in each project directory.
