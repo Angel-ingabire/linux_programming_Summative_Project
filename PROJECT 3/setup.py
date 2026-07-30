@@ -29,8 +29,13 @@ Dependencies:
 """
 
 from setuptools import Extension, setup
+import sys
 
-# Define the C extension module
+# GCC-specific flags are not valid for MSVC on Windows.
+if sys.platform == 'win32':
+    extra_compile_args = []
+else:
+    extra_compile_args = ['-O2', '-Wall']
 # Extension parameters:
 #   - name: Python-visible module name (must match PyInit_ function name)
 #   - sources: list of C source files to compile
@@ -39,8 +44,8 @@ from setuptools import Extension, setup
 extension = Extension(
     'sensor_analysis',                    # Module name
     sources=['sensor_analysis.c'],        # Source file(s)
-    libraries=['m'],                      # Link with math library for fabs(), sqrt()
-    extra_compile_args=['-O2', '-Wall'],  # Optimization and warnings
+    libraries=[] if sys.platform == 'win32' else ['m'],
+    extra_compile_args=extra_compile_args,
 )
 
 # Run the setup

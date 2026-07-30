@@ -52,7 +52,7 @@
  */
 #define PORT 8080                 /* Server listening port */
 #define MAX_CLIENTS 10            /* Maximum simultaneous clients */
-#define BUFFER_SIZE 1024          /* Message buffer size */
+#define BUFFER_SIZE 4096          /* Message buffer size */
 #define MAX_USER_ID_LEN 32        /* Maximum user ID length */
 #define MAX_EQUIPMENT_NAME_LEN 64 /* Maximum equipment name length */
 #define MAX_EQUIPMENT 20          /* Maximum equipment items */
@@ -174,27 +174,44 @@ static int is_valid_user(const char *user_id)
  */
 static void build_equipment_list(char *buffer, size_t buffer_size)
 {
-    buffer[0] = '\0';
-    strcat(buffer, "EQUIPMENT:");
+    size_t offset = 0;
+    int written;
+
+    if (buffer_size == 0)
+    {
+        return;
+    }
+
+    written = snprintf(buffer, buffer_size, "EQUIPMENT:");
+    if (written < 0 || (size_t)written >= buffer_size)
+    {
+        return;
+    }
+    offset = (size_t)written;
 
     for (int i = 0; i < equipment_count; i++)
     {
-        if (i > 0)
-        {
-            strcat(buffer, "\t"); /* Tab separator between items */
-        }
-        strcat(buffer, equipment[i].name);
-        strcat(buffer, " (");
         if (equipment[i].available)
         {
-            strcat(buffer, "available");
+            written = snprintf(buffer + offset, buffer_size - offset,
+                               "%s%s (available)",
+                               (i > 0) ? "\t" : "",
+                               equipment[i].name);
         }
         else
         {
-            strcat(buffer, "reserved by ");
-            strcat(buffer, equipment[i].reserved_by);
+            written = snprintf(buffer + offset, buffer_size - offset,
+                               "%s%s (reserved by %s)",
+                               (i > 0) ? "\t" : "",
+                               equipment[i].name,
+                               equipment[i].reserved_by);
         }
-        strcat(buffer, ")");
+
+        if (written < 0 || (size_t)written >= buffer_size - offset)
+        {
+            break;
+        }
+        offset += (size_t)written;
     }
 }
 

@@ -50,7 +50,7 @@ The `sensor_readings.txt` file contains:
 ## Expected Output
 
 ```
-Total records: 12
+Total records: 13
 Valid records: 9
 ```
 

@@ -36,12 +36,30 @@
  */
 static int read_response(int sock_fd, char *buffer, size_t size)
 {
-    ssize_t n = recv(sock_fd, buffer, size - 1, 0);
-    if (n <= 0)
+    size_t total = 0;
+
+    if (size == 0)
     {
         return -1;
     }
-    buffer[n] = '\0';
+
+    /* Read until a full line is received (handles large/split TCP messages) */
+    while (total < size - 1)
+    {
+        ssize_t n = recv(sock_fd, buffer + total, size - 1 - total, 0);
+        if (n <= 0)
+        {
+            return -1;
+        }
+
+        total += (size_t)n;
+        buffer[total] = '\0';
+
+        if (strchr(buffer, '\n') != NULL)
+        {
+            break;
+        }
+    }
 
     /* Remove trailing newline or carriage return */
     size_t len = strlen(buffer);
@@ -51,7 +69,7 @@ static int read_response(int sock_fd, char *buffer, size_t size)
         len--;
     }
 
-    return (int)n;
+    return (int)total;
 }
 
 /* ===========================================================================
@@ -186,6 +204,7 @@ int main(int argc, char *argv[])
     /* ---- Main interaction loop ---- */
     int authenticated = 0;
     char user_id[32];
+    size_t len;
 
     while (1)
     {
@@ -197,7 +216,7 @@ int main(int argc, char *argv[])
                 break;
 
             /* Remove trailing newline */
-            size_t len = strlen(input);
+            len = strlen(input);
             if (len > 0 && input[len - 1] == '\n')
             {
                 input[len - 1] = '\0';
